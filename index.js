@@ -1,3 +1,5 @@
+const debugStartup = require("debug")("app:startup");
+const debugReq = require("debug")("app:info");
 const config = require("config");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
@@ -13,12 +15,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // log for every http request in development
 if (app.get("env") === "development") {
-    app.use(morgan("tiny"));
+    app.use(morgan("dev", { stream: { write: (msg) => debugReq(msg) } }));
 }
 
 // checking for config.jwtPrivateKey
 if (!config.get("jwtPrivateKey")) {
-    console.error(`FATAL ERROR: jwtPrivateKey is not defined.`);
+    debugStartup(`FATAL ERROR: jwtPrivateKey is not defined.`);
     process.exit(1);
 }
 
@@ -26,4 +28,4 @@ if (!config.get("jwtPrivateKey")) {
 app.use("/api/v1", require("./router/index"));
 
 // set port, listen for requests
-app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+app.listen(PORT, () => debugStartup(`Listening on port ${PORT}...`));
